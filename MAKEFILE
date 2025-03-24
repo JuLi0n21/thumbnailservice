@@ -1,0 +1,9 @@
+# Makefile
+
+# Define the 'proto' target
+proto:
+	# Generate Go code for the client
+	protoc --go_out=./client --go-grpc_out=./client ./thumbnail.proto
+	
+	# Generate Go code for the server
+	protoc --go_out=./server --go-grpc_out=./server ./thumbnail.proto
