@@ -9,9 +9,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
+	"image/gif"
 	_ "image/gif"
 	"image/jpeg"
 	"image/png"
@@ -41,17 +43,17 @@ func generateVideoThumbnail(inputPath, outputPath string, maxWidth, maxHeight in
 
 func generatePdfThumbnail(inputPath, outputPath string, maxWidth, maxHeight int) error {
 
-	cmd := exec.Command("pdftoppm", inputPath, outputPath, "-jpeg", "-f", "1", "-l", "1", "-scale-to", "200")
+	filename := strings.TrimSuffix(outputPath, ".jpg")
+
+	cmd := exec.Command("pdftoppm",
+		inputPath, filename, "-jpeg",
+		"-singlefile",
+		"-f", "1",
+		"-l", "1",
+		"-scale-to", strconv.Itoa(maxHeight))
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("failed to generate PDF thumbnail using Poppler-utils: %v", err)
-	}
-
-	outputFileWithPage := fmt.Sprintf("%s-01.jpg", outputPath)
-
-	err = os.Rename(outputFileWithPage, outputPath)
-	if err != nil {
-		return fmt.Errorf("failed to rename file: %v", err)
 	}
 
 	if maxWidth > 0 || maxHeight > 0 {
@@ -108,6 +110,11 @@ func resizeImage(inputPath, outputPath string, maxWidth, maxHeight int) error {
 		}
 	case "png":
 		err = png.Encode(outFile, resizedImg)
+		if err != nil {
+			return fmt.Errorf("failed to save resized image as png: %v", err)
+		}
+	case "gif":
+		err = gif.Encode(outFile, resizedImg, &gif.Options{})
 		if err != nil {
 			return fmt.Errorf("failed to save resized image as png: %v", err)
 		}
@@ -178,6 +185,8 @@ func (s *server) GenerateThumbnail(ctx context.Context, req *pb.ThumbnailRequest
 	}, nil
 }
 
+const maxMsgSize = 2147483648 // 2GB
+
 func main() {
 
 	listen, err := net.Listen("tcp", ":50051")
@@ -185,7 +194,9 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.MaxRecvMsgSize(maxMsgSize),
+		grpc.MaxSendMsgSize(maxMsgSize))
 
 	pb.RegisterThumbnailServiceServer(grpcServer, &server{})
 
