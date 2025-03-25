@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	pb "thumbnailclient/proto"
@@ -32,13 +33,20 @@ func main() {
 		{pb.FileType_PDF, "testdata/pdf-sample.pdf"},
 		{pb.FileType_VIDEO, "testdata/video-sample.webm"}}
 
+	a := sync.WaitGroup{}
+
 	for _, f := range filePath {
-		newFunction(f.Path, f.Type, client)
+		a.Add(1)
+		go func() {
+			createPreview(f.Path, f.Type, client)
+			a.Done()
+		}()
 	}
 
+	a.Wait()
 }
 
-func newFunction(filePath string, ftype pb.FileType, client pb.ThumbnailServiceClient) {
+func createPreview(filePath string, ftype pb.FileType, client pb.ThumbnailServiceClient) {
 	fileContent, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatalf("Error reading file: %v", err)
