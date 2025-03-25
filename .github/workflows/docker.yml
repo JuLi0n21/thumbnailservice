@@ -31,8 +31,8 @@ jobs:
         context: ./server
         push: ${{ github.event_name == 'push' }}
         tags: |
-         juli0n21/thumbnails:latest
          juli0n21/thumbnails:${{ github.sha }}
+         juli0n21/thumbnails:latest
 
     - name: Logout from Docker Hub
       if: always()
