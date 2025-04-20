@@ -30,3 +30,17 @@ message ThumbnailResponse {
     string message = 1;           // Message indicating success or failure
     bytes thumbnail_content = 2;  // Thumbnail content as bytes
 }
+
+//create a ocred version of a document
+message OCRFileRequest {
+    bytes file_content = 1;     //file
+    FileType file_type = 2;     //file type for future adding of maybe other stuff?
+    bool cleanUp = 3;           // if whitespace should be normalized and cleaned from "useless chars"
+}
+
+//Response message of ocred document
+message OCRFileResponse {
+    string message = 1;         // Status Message
+    bytes ocr_content = 2;      //data of the ocred file
+    string text_content = 3;    //text of the file
+}

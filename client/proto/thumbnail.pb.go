@@ -196,6 +196,128 @@ func (x *ThumbnailResponse) GetThumbnailContent() []byte {
 	return nil
 }
 
+// create a ocred version of a document
+type OCRFileRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`                         //file
+	FileType      FileType               `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=thumbnail_service.FileType" json:"file_type,omitempty"` //file type for future adding of maybe other stuff?
+	CleanUp       bool                   `protobuf:"varint,3,opt,name=cleanUp,proto3" json:"cleanUp,omitempty"`                                                   // if whitespace should be normalized and cleaned from "useless chars"
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OCRFileRequest) Reset() {
+	*x = OCRFileRequest{}
+	mi := &file_thumbnail_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OCRFileRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OCRFileRequest) ProtoMessage() {}
+
+func (x *OCRFileRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_thumbnail_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OCRFileRequest.ProtoReflect.Descriptor instead.
+func (*OCRFileRequest) Descriptor() ([]byte, []int) {
+	return file_thumbnail_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OCRFileRequest) GetFileContent() []byte {
+	if x != nil {
+		return x.FileContent
+	}
+	return nil
+}
+
+func (x *OCRFileRequest) GetFileType() FileType {
+	if x != nil {
+		return x.FileType
+	}
+	return FileType_FILE_TYPE_UNSPECIFIED
+}
+
+func (x *OCRFileRequest) GetCleanUp() bool {
+	if x != nil {
+		return x.CleanUp
+	}
+	return false
+}
+
+// Response message of ocred document
+type OCRFileResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`                            // Status Message
+	OcrContent    []byte                 `protobuf:"bytes,2,opt,name=ocr_content,json=ocrContent,proto3" json:"ocr_content,omitempty"`    //data of the ocred file
+	TextContent   string                 `protobuf:"bytes,3,opt,name=text_content,json=textContent,proto3" json:"text_content,omitempty"` //text of the file
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OCRFileResponse) Reset() {
+	*x = OCRFileResponse{}
+	mi := &file_thumbnail_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OCRFileResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OCRFileResponse) ProtoMessage() {}
+
+func (x *OCRFileResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_thumbnail_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OCRFileResponse.ProtoReflect.Descriptor instead.
+func (*OCRFileResponse) Descriptor() ([]byte, []int) {
+	return file_thumbnail_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *OCRFileResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *OCRFileResponse) GetOcrContent() []byte {
+	if x != nil {
+		return x.OcrContent
+	}
+	return nil
+}
+
+func (x *OCRFileResponse) GetTextContent() string {
+	if x != nil {
+		return x.TextContent
+	}
+	return ""
+}
+
 var File_thumbnail_proto protoreflect.FileDescriptor
 
 const file_thumbnail_proto_rawDesc = "" +
@@ -209,7 +331,16 @@ const file_thumbnail_proto_rawDesc = "" +
 	"max_height\x18\x04 \x01(\x05R\tmaxHeight\"Z\n" +
 	"\x11ThumbnailResponse\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12+\n" +
-	"\x11thumbnail_content\x18\x02 \x01(\fR\x10thumbnailContent*D\n" +
+	"\x11thumbnail_content\x18\x02 \x01(\fR\x10thumbnailContent\"\x87\x01\n" +
+	"\x0eOCRFileRequest\x12!\n" +
+	"\ffile_content\x18\x01 \x01(\fR\vfileContent\x128\n" +
+	"\tfile_type\x18\x02 \x01(\x0e2\x1b.thumbnail_service.FileTypeR\bfileType\x12\x18\n" +
+	"\acleanUp\x18\x03 \x01(\bR\acleanUp\"o\n" +
+	"\x0fOCRFileResponse\x12\x18\n" +
+	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1f\n" +
+	"\vocr_content\x18\x02 \x01(\fR\n" +
+	"ocrContent\x12!\n" +
+	"\ftext_content\x18\x03 \x01(\tR\vtextContent*D\n" +
 	"\bFileType\x12\x19\n" +
 	"\x15FILE_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05IMAGE\x10\x01\x12\t\n" +
@@ -231,21 +362,24 @@ func file_thumbnail_proto_rawDescGZIP() []byte {
 }
 
 var file_thumbnail_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_thumbnail_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_thumbnail_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_thumbnail_proto_goTypes = []any{
 	(FileType)(0),             // 0: thumbnail_service.FileType
 	(*ThumbnailRequest)(nil),  // 1: thumbnail_service.ThumbnailRequest
 	(*ThumbnailResponse)(nil), // 2: thumbnail_service.ThumbnailResponse
+	(*OCRFileRequest)(nil),    // 3: thumbnail_service.OCRFileRequest
+	(*OCRFileResponse)(nil),   // 4: thumbnail_service.OCRFileResponse
 }
 var file_thumbnail_proto_depIdxs = []int32{
 	0, // 0: thumbnail_service.ThumbnailRequest.file_type:type_name -> thumbnail_service.FileType
-	1, // 1: thumbnail_service.ThumbnailService.GenerateThumbnail:input_type -> thumbnail_service.ThumbnailRequest
-	2, // 2: thumbnail_service.ThumbnailService.GenerateThumbnail:output_type -> thumbnail_service.ThumbnailResponse
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 1: thumbnail_service.OCRFileRequest.file_type:type_name -> thumbnail_service.FileType
+	1, // 2: thumbnail_service.ThumbnailService.GenerateThumbnail:input_type -> thumbnail_service.ThumbnailRequest
+	2, // 3: thumbnail_service.ThumbnailService.GenerateThumbnail:output_type -> thumbnail_service.ThumbnailResponse
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_thumbnail_proto_init() }
@@ -259,7 +393,7 @@ func file_thumbnail_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_thumbnail_proto_rawDesc), len(file_thumbnail_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

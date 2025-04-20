@@ -185,6 +185,50 @@ func (s *server) GenerateThumbnail(ctx context.Context, req *pb.ThumbnailRequest
 	}, nil
 }
 
+func (s *server) OCRFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFileResponse, error) {
+
+	//save to disk
+
+	//do preprocessing
+
+	//extract information...
+
+	//return stuff
+	return &pb.OCRFileResponse{
+		Message:     "OCRed successfully",
+		TextContent: "",
+		OcrContent:  []byte{},
+	}, nil
+}
+
+func isScannedPDF(filePath string) bool {
+	cmd := exec.Command("pdftotext", filePath, "-")
+	out, err := cmd.Output()
+	if err != nil {
+		log.Printf("pdftotext error for %s: %v", filePath, err)
+		return false
+	}
+	return len(strings.TrimSpace(string(out))) == 0
+}
+
+func runOCRMyPDF(inputPath, outputPath string) error {
+	cmd := exec.Command("ocrmypdf", "--skip-text", inputPath, outputPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("ocrmypdf failed: %v\nOutput: %s", err, output)
+	}
+	return nil
+}
+
+func decryptPDF(inputPath, outputPath string) error {
+	cmd := exec.Command("qpdf", "--decrypt", inputPath, outputPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("qpdf failed: %v\nOutput: %s", err, output)
+	}
+	return nil
+}
+
 const maxMsgSize = 2147483648 // 2GB
 
 func main() {
