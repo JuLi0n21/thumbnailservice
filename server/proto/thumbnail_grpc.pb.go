@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ThumbnailService_GenerateThumbnail_FullMethodName = "/thumbnail_service.ThumbnailService/GenerateThumbnail"
+	ThumbnailService_OcrFile_FullMethodName           = "/thumbnail_service.ThumbnailService/OcrFile"
 )
 
 // ThumbnailServiceClient is the client API for ThumbnailService service.
@@ -29,6 +30,7 @@ const (
 // Service definition
 type ThumbnailServiceClient interface {
 	GenerateThumbnail(ctx context.Context, in *ThumbnailRequest, opts ...grpc.CallOption) (*ThumbnailResponse, error)
+	OcrFile(ctx context.Context, in *OCRFileRequest, opts ...grpc.CallOption) (*OCRFileResponse, error)
 }
 
 type thumbnailServiceClient struct {
@@ -49,6 +51,16 @@ func (c *thumbnailServiceClient) GenerateThumbnail(ctx context.Context, in *Thum
 	return out, nil
 }
 
+func (c *thumbnailServiceClient) OcrFile(ctx context.Context, in *OCRFileRequest, opts ...grpc.CallOption) (*OCRFileResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(OCRFileResponse)
+	err := c.cc.Invoke(ctx, ThumbnailService_OcrFile_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ThumbnailServiceServer is the server API for ThumbnailService service.
 // All implementations must embed UnimplementedThumbnailServiceServer
 // for forward compatibility.
@@ -56,6 +68,7 @@ func (c *thumbnailServiceClient) GenerateThumbnail(ctx context.Context, in *Thum
 // Service definition
 type ThumbnailServiceServer interface {
 	GenerateThumbnail(context.Context, *ThumbnailRequest) (*ThumbnailResponse, error)
+	OcrFile(context.Context, *OCRFileRequest) (*OCRFileResponse, error)
 	mustEmbedUnimplementedThumbnailServiceServer()
 }
 
@@ -68,6 +81,9 @@ type UnimplementedThumbnailServiceServer struct{}
 
 func (UnimplementedThumbnailServiceServer) GenerateThumbnail(context.Context, *ThumbnailRequest) (*ThumbnailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GenerateThumbnail not implemented")
+}
+func (UnimplementedThumbnailServiceServer) OcrFile(context.Context, *OCRFileRequest) (*OCRFileResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method OcrFile not implemented")
 }
 func (UnimplementedThumbnailServiceServer) mustEmbedUnimplementedThumbnailServiceServer() {}
 func (UnimplementedThumbnailServiceServer) testEmbeddedByValue()                          {}
@@ -108,6 +124,24 @@ func _ThumbnailService_GenerateThumbnail_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ThumbnailService_OcrFile_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(OCRFileRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ThumbnailServiceServer).OcrFile(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ThumbnailService_OcrFile_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ThumbnailServiceServer).OcrFile(ctx, req.(*OCRFileRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ThumbnailService_ServiceDesc is the grpc.ServiceDesc for ThumbnailService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -118,6 +152,10 @@ var ThumbnailService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GenerateThumbnail",
 			Handler:    _ThumbnailService_GenerateThumbnail_Handler,
+		},
+		{
+			MethodName: "OcrFile",
+			Handler:    _ThumbnailService_OcrFile_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	github.com/google/uuid v1.6.0
+	github.com/ledongthuc/pdf v0.0.0-20240201131950-da5b75280b06
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.6

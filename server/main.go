@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"image"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -20,6 +22,7 @@ import (
 
 	pb "github.com/JuLi0n21/thumbnail_service/proto"
 	"github.com/google/uuid"
+	"github.com/ledongthuc/pdf"
 	"github.com/nfnt/resize"
 	"google.golang.org/grpc"
 )
@@ -170,6 +173,8 @@ func (s *server) GenerateThumbnail(ctx context.Context, req *pb.ThumbnailRequest
 		if _, err := os.Stat(outputPath); err == nil {
 			os.Remove(outputPath)
 		}
+		end := time.Since(time.Now())
+		fmt.Println(time.Now().Format("2006-01-02 15:04:05.000"), "Finshed in: ", end, req.FileType, "H: ", req.MaxHeight, "W: ", req.MaxWidth)
 	}()
 
 	thumbnailContent, err := os.ReadFile(outputPath)
@@ -177,56 +182,227 @@ func (s *server) GenerateThumbnail(ctx context.Context, req *pb.ThumbnailRequest
 		return nil, fmt.Errorf("failed to read generated thumbnail: %v", err)
 	}
 
-	end := time.Since(time.Now())
-	fmt.Println(time.Now().Format("2006-01-02 15:04:05.000"), "Finshed in: ", end, req.FileType, "H: ", req.MaxHeight, "W: ", req.MaxWidth)
 	return &pb.ThumbnailResponse{
 		Message:          "Thumbnail generated successfully",
 		ThumbnailContent: thumbnailContent,
 	}, nil
 }
 
-func (s *server) OCRFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFileResponse, error) {
+func (s *server) OcrFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFileResponse, error) {
+	start := time.Now()
+	fmt.Println(start.Format("2006-01-02 15:04:05.000"), "OCR request ", req.FileType)
 
-	//save to disk
+	defer func() {
+		end := time.Since(time.Now())
+		fmt.Println(time.Now().Format("2006-01-02 15:04:05.000"), "OCR Finshed in: ", end, req.FileType)
+	}()
+	if req.FileType != pb.FileType_PDF {
+		err := errors.New("unsupported Filetype " + req.FileType.String())
+		return &pb.OCRFileResponse{
+			Message:     "OCR failed, " + err.Error(),
+			TextContent: "",
+			OcrContent:  []byte{},
+		}, err
+	}
+	file, err := os.CreateTemp("ocr", "temp-file-*")
+	if err != nil {
+		return &pb.OCRFileResponse{
+			Message:     "OCR failed, " + err.Error(),
+			TextContent: "",
+			OcrContent:  []byte{},
+		}, err
+	}
+	filePath := file.Name()
+	defer func(file *os.File, filePath string) {
+		file.Close()
 
-	//do preprocessing
+		err = os.Remove(file.Name())
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}(file, filePath)
 
-	//extract information...
+	_, err = file.Write(req.FileContent)
+	if err != nil {
+		return &pb.OCRFileResponse{
+			Message:     "OCR failed, " + err.Error(),
+			TextContent: "",
+			OcrContent:  []byte{},
+		}, err
+	}
 
-	//return stuff
+	if ok, err := isScannedPDF(filePath); err != nil {
+		return &pb.OCRFileResponse{
+			Message:     "OCR failed, " + err.Error(),
+			TextContent: "",
+			OcrContent:  []byte{},
+		}, err
+	} else if !ok {
+		if isEncrypted(filePath) {
+			err := decryptPDF(filePath)
+			if err != nil {
+				return &pb.OCRFileResponse{
+					Message:     "OCR failed, " + err.Error(),
+					TextContent: "",
+					OcrContent:  []byte{},
+				}, err
+			}
+		}
+
+		err = runOCRMyPDF(filePath)
+		if err != nil {
+			return &pb.OCRFileResponse{
+				Message:     "OCR failed, " + err.Error(),
+				TextContent: "",
+				OcrContent:  []byte{},
+			}, err
+		}
+	}
+
+	var text string
+	var b []byte
+	text, b, err = extractTextFromPDF(filePath)
+	if err != nil {
+
+		if strings.Contains("malformed pdf", err.Error()) {
+			repairPDF(filePath)
+			text, b, err = extractTextFromPDF(filePath)
+
+		} else {
+			return &pb.OCRFileResponse{
+				Message:     "OCR failed, " + err.Error(),
+				TextContent: "",
+				OcrContent:  []byte{},
+			}, err
+		}
+	}
+
 	return &pb.OCRFileResponse{
-		Message:     "OCRed successfully",
-		TextContent: "",
-		OcrContent:  []byte{},
+		Message:     "OCR success",
+		TextContent: text,
+		OcrContent:  b,
 	}, nil
 }
 
-func isScannedPDF(filePath string) bool {
-	cmd := exec.Command("pdftotext", filePath, "-")
-	out, err := cmd.Output()
+func isScannedPDF(path string) (bool, error) {
+	f, r, err := pdf.Open(path)
 	if err != nil {
-		log.Printf("pdftotext error for %s: %v", filePath, err)
-		return false
+		return false, fmt.Errorf("failed to open PDF: %w", err)
 	}
-	return len(strings.TrimSpace(string(out))) == 0
+	defer f.Close()
+
+	reader, err := r.GetPlainText()
+	if err != nil {
+		return false, fmt.Errorf("failed to get PDF text: %w", err)
+	}
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return false, fmt.Errorf("failed to read PDF content: %w", err)
+	}
+
+	return len(strings.TrimSpace(string(content))) != 0, nil
 }
 
-func runOCRMyPDF(inputPath, outputPath string) error {
-	cmd := exec.Command("ocrmypdf", "--skip-text", inputPath, outputPath)
+func runOCRMyPDF(inputPath string) error {
+	tempfile, err := os.CreateTemp("", "temp-ocr-*.pdf")
+	defer os.Remove(tempfile.Name())
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command("ocrmypdf", "--skip-text", inputPath, tempfile.Name())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("ocrmypdf failed: %v\nOutput: %s", err, output)
 	}
+
+	processedData, err := os.ReadFile(tempfile.Name())
+	if err != nil {
+		return fmt.Errorf("failed to read processed file: %v", err)
+	}
+
+	err = os.WriteFile(inputPath, processedData, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to overwrite input file: %v", err)
+	}
 	return nil
 }
 
-func decryptPDF(inputPath, outputPath string) error {
-	cmd := exec.Command("qpdf", "--decrypt", inputPath, outputPath)
+func isEncrypted(pdfPath string) bool {
+	cmd := exec.Command("qpdf", "--check", pdfPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return strings.Contains(string(output), "File is not encrypted")
+	}
+	return false
+}
+
+func repairPDF(inputPath string) error {
+	tempfile, err := os.CreateTemp("", "")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tempfile.Name())
+
+	cmd := exec.Command("qpdf", "--repair", inputPath, tempfile.Name())
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return err
+	}
+
+	_, err = tempfile.Write(output)
+
+	return err
+}
+
+func decryptPDF(inputPath string) error {
+	tempfile, err := os.CreateTemp("", "")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tempfile.Name())
+
+	cmd := exec.Command("qpdf", "--decrypt", inputPath, tempfile.Name())
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("qpdf failed: %v\nOutput: %s", err, output)
 	}
+
+	processedData, err := os.ReadFile(tempfile.Name())
+	if err != nil {
+		return fmt.Errorf("failed to read processed file: %v", err)
+	}
+
+	err = os.WriteFile(inputPath, processedData, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to overwrite input file: %v", err)
+	}
 	return nil
+}
+
+func extractTextFromPDF(path string) (string, []byte, error) {
+	f, r, err := pdf.Open(path)
+	if err != nil {
+		return "", []byte{}, fmt.Errorf("failed to open PDF: %w", err)
+	}
+	defer f.Close()
+
+	reader, err := r.GetPlainText()
+	if err != nil {
+		return "", []byte{}, fmt.Errorf("failed to get PDF text: %w", err)
+	}
+
+	content, err := io.ReadAll(reader)
+	if err != nil {
+		return "", []byte{}, fmt.Errorf("failed to read PDF content: %w", err)
+	}
+
+	rawData, err := os.ReadFile(path)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to read raw PDF file: %w", err)
+	}
+
+	return string(content), rawData, nil
 }
 
 const maxMsgSize = 2147483648 // 2GB

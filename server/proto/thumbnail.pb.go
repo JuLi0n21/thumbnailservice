@@ -345,9 +345,10 @@ const file_thumbnail_proto_rawDesc = "" +
 	"\x15FILE_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05IMAGE\x10\x01\x12\t\n" +
 	"\x05VIDEO\x10\x02\x12\a\n" +
-	"\x03PDF\x10\x032r\n" +
+	"\x03PDF\x10\x032\xc4\x01\n" +
 	"\x10ThumbnailService\x12^\n" +
-	"\x11GenerateThumbnail\x12#.thumbnail_service.ThumbnailRequest\x1a$.thumbnail_service.ThumbnailResponseB\tZ\a./protob\x06proto3"
+	"\x11GenerateThumbnail\x12#.thumbnail_service.ThumbnailRequest\x1a$.thumbnail_service.ThumbnailResponse\x12P\n" +
+	"\aOcrFile\x12!.thumbnail_service.OCRFileRequest\x1a\".thumbnail_service.OCRFileResponseB\tZ\a./protob\x06proto3"
 
 var (
 	file_thumbnail_proto_rawDescOnce sync.Once
@@ -374,9 +375,11 @@ var file_thumbnail_proto_depIdxs = []int32{
 	0, // 0: thumbnail_service.ThumbnailRequest.file_type:type_name -> thumbnail_service.FileType
 	0, // 1: thumbnail_service.OCRFileRequest.file_type:type_name -> thumbnail_service.FileType
 	1, // 2: thumbnail_service.ThumbnailService.GenerateThumbnail:input_type -> thumbnail_service.ThumbnailRequest
-	2, // 3: thumbnail_service.ThumbnailService.GenerateThumbnail:output_type -> thumbnail_service.ThumbnailResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
+	3, // 3: thumbnail_service.ThumbnailService.OcrFile:input_type -> thumbnail_service.OCRFileRequest
+	2, // 4: thumbnail_service.ThumbnailService.GenerateThumbnail:output_type -> thumbnail_service.ThumbnailResponse
+	4, // 5: thumbnail_service.ThumbnailService.OcrFile:output_type -> thumbnail_service.OCRFileResponse
+	4, // [4:6] is the sub-list for method output_type
+	2, // [2:4] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name

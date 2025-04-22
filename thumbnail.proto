@@ -15,6 +15,7 @@ enum FileType {
 // Service definition
 service ThumbnailService {
     rpc GenerateThumbnail(ThumbnailRequest) returns (ThumbnailResponse);
+    rpc OcrFile(OCRFileRequest) returns (OCRFileResponse);
 }
 
 // Request message for generating thumbnails

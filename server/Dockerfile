@@ -1,12 +1,15 @@
-FROM golang:1.24.1
+FROM golang:1.24.2
 
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     imagemagick \
     ffmpeg \
-    poppler-utils && \
-    rm -rf /var/lib/apt/lists/*
+    poppler-utils \
+    ocrmypdf \
+    qpdf \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
