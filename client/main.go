@@ -66,10 +66,7 @@ func createPreview(filePath string, ftype pb.FileType, client pb.ThumbnailServic
 		MaxHeight:   150,
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
-	resp, err := client.GenerateThumbnail(ctx, req)
+	resp, err := client.GenerateThumbnail(context.Background(), req)
 	if err != nil {
 		log.Fatalf("Error calling GenerateThumbnail: %v", err)
 	}
