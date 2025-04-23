@@ -32,6 +32,7 @@ func main() {
 		//{pb.FileType_IMAGE, "testdata/image-sample.png"},
 		{pb.FileType_PDF, "testdata/pdf-sample.pdf"},
 		{pb.FileType_PDF, "testdata/blitzer.pdf"},
+		{pb.FileType_PDF, "testdata/persopin.pdf"},
 		//{pb.FileType_VIDEO, "testdata/video-sample.webm"}
 	}
 
@@ -105,7 +106,7 @@ func createOCR(filePath string, ftype pb.FileType, client pb.ThumbnailServiceCli
 		return
 	}
 
-	fmt.Printf("[OCR] %s: %s\n %s", filePath, resp.Message, resp.TextContent)
+	fmt.Printf("[OCR] %s: %s\n %s, %dkb\n", filePath, resp.Message, resp.TextContent, len(resp.TextContent)/1024.0)
 
 	if len(resp.OcrContent) > 0 {
 		err := saveToFile([]byte(resp.OcrContent), filePath, "ocr", ".pdf")

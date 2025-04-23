@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+	"unicode"
 )
 
 func isScannedPDF(path string) (bool, error) {
@@ -117,4 +119,57 @@ func extractTextFromPDF(path string) (string, []byte, error) {
 	}
 
 	return string(data), rawData, nil
+}
+
+func isUselessLine(line string) bool {
+	if len(line) == 0 {
+		return true
+	}
+
+	firstChar := rune(line[0])
+	if !unicode.IsLetter(firstChar) && !unicode.IsNumber(firstChar) {
+		allSame := true
+		for _, c := range line {
+			if c != firstChar {
+				allSame = false
+				break
+			}
+		}
+		if allSame && len(line) > 3 { // Minimum 4 repeating chars to consider useless
+			return true
+		}
+	}
+
+	return false
+}
+
+func cleanOCRText(input string) string {
+	var builder strings.Builder
+	builder.Grow(len(input))
+
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+
+		if isUselessLine(line) {
+			builder.WriteRune(' ')
+			continue
+		}
+
+		prevSpace := false
+		for _, r := range line {
+			if unicode.IsSpace(r) {
+				if !prevSpace {
+					builder.WriteRune(' ')
+					prevSpace = true
+				}
+			} else {
+				builder.WriteRune(r)
+				prevSpace = false
+			}
+		}
+	}
+
+	cleaned := strings.TrimSpace(builder.String())
+	return cleaned
 }

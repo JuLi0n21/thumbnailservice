@@ -171,7 +171,7 @@ func (s *server) GenerateThumbnail(ctx context.Context, req *pb.ThumbnailRequest
 		if _, err := os.Stat(outputPath); err == nil {
 			os.Remove(outputPath)
 		}
-		end := time.Since(time.Now())
+		end := time.Since(start)
 		fmt.Println(time.Now().Format("2006-01-02 15:04:05.000"), "Finshed in: ", end, req.FileType, "H: ", req.MaxHeight, "W: ", req.MaxWidth)
 	}()
 
@@ -191,7 +191,7 @@ func (s *server) OcrFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFi
 	fmt.Println(start.Format("2006-01-02 15:04:05.000"), "OCR request ", req.FileType)
 
 	defer func() {
-		end := time.Since(time.Now())
+		end := time.Since(start)
 		fmt.Println(time.Now().Format("2006-01-02 15:04:05.000"), "OCR Finshed in: ", end, req.FileType)
 	}()
 
@@ -237,6 +237,10 @@ func (s *server) OcrFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFi
 	text, b, err := extractTextFromPDF(filePath)
 	if err != nil {
 		return handleErr("failed to extract text", err)
+	}
+
+	if req.CleanUp {
+		text = cleanOCRText(text)
 	}
 
 	return &pb.OCRFileResponse{
