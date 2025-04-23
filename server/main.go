@@ -199,7 +199,7 @@ func (s *server) OcrFile(ctx context.Context, req *pb.OCRFileRequest) (*pb.OCRFi
 		err := errors.New("unsupported Filetype " + req.FileType.String())
 		return handleErr(err.Error(), err)
 	}
-	file, err := os.CreateTemp("ocr", "temp-file-*")
+	file, err := os.CreateTemp("", "temp-file-*")
 	if err != nil {
 		return handleErr("failed to create temp file", err)
 	}
