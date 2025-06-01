@@ -1,9 +1,26 @@
-# Makefile
+PROTOC        ?= protoc
+PROTO_FILE    = thumbnail.proto
+GOOGLEAPIS    = google/api
 
-# Define the 'proto' target
+CLIENT_OUT    = client
+SERVER_OUT    = server/proto
+SWAGGER_OUT   = server/swagger
+
 proto:
-	# Generate Go code for the client
-	protoc --go_out=./client --go-grpc_out=./client ./thumbnail.proto
+	mkdir -p $(CLIENT_OUT) $(SERVER_OUT) $(SWAGGER_OUT)
 	
-	# Generate Go code for the server
-	protoc --go_out=./server --go-grpc_out=./server ./thumbnail.proto
+	# Client code
+	$(PROTOC) --go_out=$(CLIENT_OUT) --go-grpc_out=$(CLIENT_OUT) $(PROTO_FILE)
+
+	# Server code with gRPC Gateway
+	$(PROTOC) -I . -I $(GOOGLEAPIS) \
+		--go_out=$(SERVER_OUT) --go_opt=paths=source_relative \
+		--go-grpc_out=$(SERVER_OUT) --go-grpc_opt=paths=source_relative \
+		--grpc-gateway_out=$(SERVER_OUT) --grpc-gateway_opt=paths=source_relative \
+		--openapiv2_out=$(SWAGGER_OUT) --openapiv2_opt=logtostderr=true \
+		$(PROTO_FILE)
+
+clean:
+	rm -rf $(CLIENT_OUT) $(SERVER_OUT) $(SWAGGER_OUT)
+
+.PHONY: proto clean

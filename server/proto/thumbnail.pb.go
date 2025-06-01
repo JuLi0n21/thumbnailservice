@@ -7,6 +7,7 @@
 package proto
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -322,7 +323,7 @@ var File_thumbnail_proto protoreflect.FileDescriptor
 
 const file_thumbnail_proto_rawDesc = "" +
 	"\n" +
-	"\x0fthumbnail.proto\x12\x11thumbnail_service\"\xab\x01\n" +
+	"\x0fthumbnail.proto\x12\x11thumbnail_service\x1a\x1cgoogle/api/annotations.proto\"\xab\x01\n" +
 	"\x10ThumbnailRequest\x12!\n" +
 	"\ffile_content\x18\x01 \x01(\fR\vfileContent\x128\n" +
 	"\tfile_type\x18\x02 \x01(\x0e2\x1b.thumbnail_service.FileTypeR\bfileType\x12\x1b\n" +
@@ -345,10 +346,10 @@ const file_thumbnail_proto_rawDesc = "" +
 	"\x15FILE_TYPE_UNSPECIFIED\x10\x00\x12\t\n" +
 	"\x05IMAGE\x10\x01\x12\t\n" +
 	"\x05VIDEO\x10\x02\x12\a\n" +
-	"\x03PDF\x10\x032\xc4\x01\n" +
-	"\x10ThumbnailService\x12^\n" +
-	"\x11GenerateThumbnail\x12#.thumbnail_service.ThumbnailRequest\x1a$.thumbnail_service.ThumbnailResponse\x12P\n" +
-	"\aOcrFile\x12!.thumbnail_service.OCRFileRequest\x1a\".thumbnail_service.OCRFileResponseB\tZ\a./protob\x06proto3"
+	"\x03PDF\x10\x032\xf2\x01\n" +
+	"\x10ThumbnailService\x12x\n" +
+	"\x11GenerateThumbnail\x12#.thumbnail_service.ThumbnailRequest\x1a$.thumbnail_service.ThumbnailResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/v1/thumbnail\x12d\n" +
+	"\aOcrFile\x12!.thumbnail_service.OCRFileRequest\x1a\".thumbnail_service.OCRFileResponse\"\x12\x82\xd3\xe4\x93\x02\f:\x01*\"\a/v1/ocrB\tZ\a./protob\x06proto3"
 
 var (
 	file_thumbnail_proto_rawDescOnce sync.Once

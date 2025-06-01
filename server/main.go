@@ -7,11 +7,14 @@ import (
 	"image"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"image/gif"
@@ -21,6 +24,7 @@ import (
 
 	pb "github.com/JuLi0n21/thumbnail_service/proto"
 	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/nfnt/resize"
 	"google.golang.org/grpc"
 )
@@ -259,7 +263,11 @@ func handleErr(message string, err error) (*pb.OCRFileResponse, error) {
 	}, err
 }
 
-const maxMsgSize = 2147483648 // 2GB
+const (
+	grpcPort   = ":50051"
+	restPort   = ":8080"
+	maxMsgSize = 1024 * 1024 * 2048 // 50 MB (adjust if needed)
+)
 
 func main() {
 
@@ -272,10 +280,63 @@ func main() {
 		grpc.MaxRecvMsgSize(maxMsgSize),
 		grpc.MaxSendMsgSize(maxMsgSize))
 
-	pb.RegisterThumbnailServiceServer(grpcServer, &server{})
+	svc := &server{}
+
+	pb.RegisterThumbnailServiceServer(grpcServer, svc)
 
 	log.Println("Server started on port 50051")
-	if err := grpcServer.Serve(listen); err != nil {
-		log.Fatalf("Failed to serve: %v", err)
+	go func() {
+		if err := grpcServer.Serve(listen); err != nil {
+			log.Fatalf("Failed to serve: %v", err)
+		}
+	}()
+
+	mux := runtime.NewServeMux()
+	ctx := context.Background()
+
+	if err := pb.RegisterThumbnailServiceHandlerServer(ctx, mux, svc); err != nil {
+		log.Fatalf("failed to register gRPC-gateway: %v", err)
 	}
+
+	swaggerDir := filepath.Join("swagger")
+	fs := http.FileServer(http.Dir(swaggerDir))
+
+	rootMux := http.NewServeMux()
+	rootMux.Handle("/swagger/", http.StripPrefix("/swagger/", fs))
+	rootMux.Handle("/", mux)
+
+	gatewayServer := &http.Server{
+		Addr:    ":8080",
+		Handler: rootMux,
+	}
+
+	go func() {
+		if err := grpcServer.Serve(listen); err != nil {
+			log.Fatalf("Failed to serve gRPC: %v", err)
+		}
+	}()
+
+	go func() {
+		log.Println("HTTP gateway listening on :8080")
+		if err := gatewayServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("HTTP server failed: %v", err)
+		}
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	log.Println("Shutting down servers...")
+
+	grpcServer.GracefulStop()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := gatewayServer.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP server shutdown failed: %v", err)
+	}
+
+	log.Println("Servers stopped cleanly")
+
 }

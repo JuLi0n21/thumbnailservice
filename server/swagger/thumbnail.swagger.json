@@ -1,0 +1,204 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "thumbnail.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ThumbnailService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/ocr": {
+      "post": {
+        "operationId": "ThumbnailService_OcrFile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/thumbnail_serviceOCRFileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/thumbnail_serviceOCRFileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ThumbnailService"
+        ]
+      }
+    },
+    "/v1/thumbnail": {
+      "post": {
+        "operationId": "ThumbnailService_GenerateThumbnail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/thumbnail_serviceThumbnailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/thumbnail_serviceThumbnailRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ThumbnailService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "thumbnail_serviceFileType": {
+      "type": "string",
+      "enum": [
+        "FILE_TYPE_UNSPECIFIED",
+        "IMAGE",
+        "VIDEO",
+        "PDF"
+      ],
+      "default": "FILE_TYPE_UNSPECIFIED",
+      "description": "- FILE_TYPE_UNSPECIFIED: Default value for unspecified file type\n - IMAGE: Image file\n - VIDEO: Video file\n - PDF: PDF file",
+      "title": "Enum for the file type"
+    },
+    "thumbnail_serviceOCRFileRequest": {
+      "type": "object",
+      "properties": {
+        "fileContent": {
+          "type": "string",
+          "format": "byte",
+          "title": "file"
+        },
+        "fileType": {
+          "$ref": "#/definitions/thumbnail_serviceFileType",
+          "title": "file type for future adding of maybe other stuff?"
+        },
+        "cleanUp": {
+          "type": "boolean",
+          "title": "if whitespace should be normalized and cleaned from \"useless chars\""
+        }
+      },
+      "title": "create a ocred version of a document"
+    },
+    "thumbnail_serviceOCRFileResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "title": "Status Message"
+        },
+        "ocrContent": {
+          "type": "string",
+          "format": "byte",
+          "title": "data of the ocred file"
+        },
+        "textContent": {
+          "type": "string",
+          "title": "text of the file"
+        }
+      },
+      "title": "Response message of ocred document"
+    },
+    "thumbnail_serviceThumbnailRequest": {
+      "type": "object",
+      "properties": {
+        "fileContent": {
+          "type": "string",
+          "format": "byte",
+          "title": "File content as bytes"
+        },
+        "fileType": {
+          "$ref": "#/definitions/thumbnail_serviceFileType",
+          "title": "File type (image, video, pdf)"
+        },
+        "maxWidth": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Optional max width for resizing (0 means no limit)"
+        },
+        "maxHeight": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Optional max height for resizing (0 means no limit)"
+        }
+      },
+      "title": "Request message for generating thumbnails"
+    },
+    "thumbnail_serviceThumbnailResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "title": "Message indicating success or failure"
+        },
+        "thumbnailContent": {
+          "type": "string",
+          "format": "byte",
+          "title": "Thumbnail content as bytes"
+        }
+      },
+      "title": "Response message for the thumbnail generation"
+    }
+  }
+}

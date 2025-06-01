@@ -4,6 +4,8 @@ package thumbnail_service;
 
 option go_package = "./proto";
 
+import "google/api/annotations.proto";
+
 // Enum for the file type
 enum FileType {
     FILE_TYPE_UNSPECIFIED = 0;  // Default value for unspecified file type
@@ -14,8 +16,18 @@ enum FileType {
 
 // Service definition
 service ThumbnailService {
-    rpc GenerateThumbnail(ThumbnailRequest) returns (ThumbnailResponse);
-    rpc OcrFile(OCRFileRequest) returns (OCRFileResponse);
+    rpc GenerateThumbnail(ThumbnailRequest) returns (ThumbnailResponse) {
+        option (google.api.http) = {
+            post: "/v1/thumbnail"
+            body: "*"
+        };
+    }
+    rpc OcrFile(OCRFileRequest) returns (OCRFileResponse) {
+        option (google.api.http) = {
+            post: "/v1/ocr"
+            body: "*"
+        };
+    }
 }
 
 // Request message for generating thumbnails
