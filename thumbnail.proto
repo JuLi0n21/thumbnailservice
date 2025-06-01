@@ -6,22 +6,27 @@ option go_package = "./proto";
 
 import "google/api/annotations.proto";
 
-// Enum for the file type
+// Enum representing the supported file types for processing.
 enum FileType {
-    FILE_TYPE_UNSPECIFIED = 0;  // Default value for unspecified file type
-    IMAGE = 1;                  // Image file
-    VIDEO = 2;                  // Video file
-    PDF = 3;                    // PDF file
+    FILE_TYPE_UNSPECIFIED = 0;  // Default value when file type is not specified.
+    IMAGE = 1;                  // Represents an image file type.
+    VIDEO = 2;                  // Represents a video file type.
+    PDF = 3;                    // Represents a PDF file type.
 }
 
-// Service definition
+// Service providing thumbnail generation and OCR functionalities.
 service ThumbnailService {
+    // Generates a thumbnail image from a given file.
+    // Accepts a ThumbnailRequest and returns a ThumbnailResponse.
     rpc GenerateThumbnail(ThumbnailRequest) returns (ThumbnailResponse) {
         option (google.api.http) = {
             post: "/v1/thumbnail"
             body: "*"
         };
     }
+
+    // Performs OCR (Optical Character Recognition) on a provided file.
+    // Accepts an OCRFileRequest and returns an OCRFileResponse.
     rpc OcrFile(OCRFileRequest) returns (OCRFileResponse) {
         option (google.api.http) = {
             post: "/v1/ocr"
@@ -30,30 +35,43 @@ service ThumbnailService {
     }
 }
 
-// Request message for generating thumbnails
+// Request message for thumbnail generation.
+//
+// The file_content must be a base64-encoded file (image, video, or PDF).
+// Optional max_width and max_height can be provided to resize the thumbnail
+// (values of 0 mean no resizing constraints).
 message ThumbnailRequest {
-    bytes file_content = 1; // File content as bytes
-    FileType file_type = 2; // File type (image, video, pdf)
-    int32 max_width = 3;     // Optional max width for resizing (0 means no limit)
-    int32 max_height = 4;    // Optional max height for resizing (0 means no limit)
+    bytes file_content = 1;  // Base64-encoded bytes of the file to process.
+    FileType file_type = 2;  // Specifies the type of the file.
+    int32 max_width = 3;     // Maximum width of the generated thumbnail; 0 means no limit.
+    int32 max_height = 4;    // Maximum height of the generated thumbnail; 0 means no limit.
 }
 
-// Response message for the thumbnail generation
+// Response message for thumbnail generation.
+//
+// Contains a status message and the generated thumbnail as base64-encoded bytes.
 message ThumbnailResponse {
-    string message = 1;           // Message indicating success or failure
-    bytes thumbnail_content = 2;  // Thumbnail content as bytes
+    string message = 1;           // Status or informational message about the thumbnail generation.
+    bytes thumbnail_content = 2;  // Base64-encoded bytes of the generated thumbnail image.
 }
 
-//create a ocred version of a document
+// Request message for OCR processing.
+//
+// The file_content must be a base64-encoded file.
+// The cleanUp flag indicates if whitespace normalization and character cleanup
+// should be applied to the extracted text.
 message OCRFileRequest {
-    bytes file_content = 1;     //file
-    FileType file_type = 2;     //file type for future adding of maybe other stuff?
-    bool cleanUp = 3;           // if whitespace should be normalized and cleaned from "useless chars"
+    bytes file_content = 1;  // Base64-encoded bytes of the file to OCR.
+    FileType file_type = 2;  // Type of the file for future extensibility.
+    bool cleanUp = 3;        // Whether to normalize whitespace and remove unnecessary characters.
 }
 
-//Response message of ocred document
+// Response message for OCR processing.
+//
+// Contains a status message, the OCRed file content as bytes, and
+// the extracted text content as a string.
 message OCRFileResponse {
-    string message = 1;         // Status Message
-    bytes ocr_content = 2;      //data of the ocred file
-    string text_content = 3;    //text of the file
+    string message = 1;         // Status message about the OCR operation.
+    bytes ocr_content = 2;      // Base64-encoded bytes of the OCR processed file.
+    string text_content = 3;    // Extracted text content from the file.
 }

@@ -22,14 +22,14 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Enum for the file type
+// Enum representing the supported file types for processing.
 type FileType int32
 
 const (
-	FileType_FILE_TYPE_UNSPECIFIED FileType = 0 // Default value for unspecified file type
-	FileType_IMAGE                 FileType = 1 // Image file
-	FileType_VIDEO                 FileType = 2 // Video file
-	FileType_PDF                   FileType = 3 // PDF file
+	FileType_FILE_TYPE_UNSPECIFIED FileType = 0 // Default value when file type is not specified.
+	FileType_IMAGE                 FileType = 1 // Represents an image file type.
+	FileType_VIDEO                 FileType = 2 // Represents a video file type.
+	FileType_PDF                   FileType = 3 // Represents a PDF file type.
 )
 
 // Enum value maps for FileType.
@@ -75,13 +75,17 @@ func (FileType) EnumDescriptor() ([]byte, []int) {
 	return file_thumbnail_proto_rawDescGZIP(), []int{0}
 }
 
-// Request message for generating thumbnails
+// Request message for thumbnail generation.
+//
+// The file_content must be a base64-encoded file (image, video, or PDF).
+// Optional max_width and max_height can be provided to resize the thumbnail
+// (values of 0 mean no resizing constraints).
 type ThumbnailRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`                         // File content as bytes
-	FileType      FileType               `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=thumbnail_service.FileType" json:"file_type,omitempty"` // File type (image, video, pdf)
-	MaxWidth      int32                  `protobuf:"varint,3,opt,name=max_width,json=maxWidth,proto3" json:"max_width,omitempty"`                                 // Optional max width for resizing (0 means no limit)
-	MaxHeight     int32                  `protobuf:"varint,4,opt,name=max_height,json=maxHeight,proto3" json:"max_height,omitempty"`                              // Optional max height for resizing (0 means no limit)
+	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`                         // Base64-encoded bytes of the file to process.
+	FileType      FileType               `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=thumbnail_service.FileType" json:"file_type,omitempty"` // Specifies the type of the file.
+	MaxWidth      int32                  `protobuf:"varint,3,opt,name=max_width,json=maxWidth,proto3" json:"max_width,omitempty"`                                 // Maximum width of the generated thumbnail; 0 means no limit.
+	MaxHeight     int32                  `protobuf:"varint,4,opt,name=max_height,json=maxHeight,proto3" json:"max_height,omitempty"`                              // Maximum height of the generated thumbnail; 0 means no limit.
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -144,11 +148,13 @@ func (x *ThumbnailRequest) GetMaxHeight() int32 {
 	return 0
 }
 
-// Response message for the thumbnail generation
+// Response message for thumbnail generation.
+//
+// Contains a status message and the generated thumbnail as base64-encoded bytes.
 type ThumbnailResponse struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Message          string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`                                           // Message indicating success or failure
-	ThumbnailContent []byte                 `protobuf:"bytes,2,opt,name=thumbnail_content,json=thumbnailContent,proto3" json:"thumbnail_content,omitempty"` // Thumbnail content as bytes
+	Message          string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`                                           // Status or informational message about the thumbnail generation.
+	ThumbnailContent []byte                 `protobuf:"bytes,2,opt,name=thumbnail_content,json=thumbnailContent,proto3" json:"thumbnail_content,omitempty"` // Base64-encoded bytes of the generated thumbnail image.
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -197,12 +203,16 @@ func (x *ThumbnailResponse) GetThumbnailContent() []byte {
 	return nil
 }
 
-// create a ocred version of a document
+// Request message for OCR processing.
+//
+// The file_content must be a base64-encoded file.
+// The cleanUp flag indicates if whitespace normalization and character cleanup
+// should be applied to the extracted text.
 type OCRFileRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`                         //file
-	FileType      FileType               `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=thumbnail_service.FileType" json:"file_type,omitempty"` //file type for future adding of maybe other stuff?
-	CleanUp       bool                   `protobuf:"varint,3,opt,name=cleanUp,proto3" json:"cleanUp,omitempty"`                                                   // if whitespace should be normalized and cleaned from "useless chars"
+	FileContent   []byte                 `protobuf:"bytes,1,opt,name=file_content,json=fileContent,proto3" json:"file_content,omitempty"`                         // Base64-encoded bytes of the file to OCR.
+	FileType      FileType               `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=thumbnail_service.FileType" json:"file_type,omitempty"` // Type of the file for future extensibility.
+	CleanUp       bool                   `protobuf:"varint,3,opt,name=cleanUp,proto3" json:"cleanUp,omitempty"`                                                   // Whether to normalize whitespace and remove unnecessary characters.
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -258,12 +268,15 @@ func (x *OCRFileRequest) GetCleanUp() bool {
 	return false
 }
 
-// Response message of ocred document
+// Response message for OCR processing.
+//
+// Contains a status message, the OCRed file content as bytes, and
+// the extracted text content as a string.
 type OCRFileResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`                            // Status Message
-	OcrContent    []byte                 `protobuf:"bytes,2,opt,name=ocr_content,json=ocrContent,proto3" json:"ocr_content,omitempty"`    //data of the ocred file
-	TextContent   string                 `protobuf:"bytes,3,opt,name=text_content,json=textContent,proto3" json:"text_content,omitempty"` //text of the file
+	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`                            // Status message about the OCR operation.
+	OcrContent    []byte                 `protobuf:"bytes,2,opt,name=ocr_content,json=ocrContent,proto3" json:"ocr_content,omitempty"`    // Base64-encoded bytes of the OCR processed file.
+	TextContent   string                 `protobuf:"bytes,3,opt,name=text_content,json=textContent,proto3" json:"text_content,omitempty"` // Extracted text content from the file.
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

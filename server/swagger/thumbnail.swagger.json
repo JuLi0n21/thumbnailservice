@@ -18,6 +18,7 @@
   "paths": {
     "/v1/ocr": {
       "post": {
+        "summary": "Performs OCR (Optical Character Recognition) on a provided file.\nAccepts an OCRFileRequest and returns an OCRFileResponse.",
         "operationId": "ThumbnailService_OcrFile",
         "responses": {
           "200": {
@@ -36,6 +37,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "Request message for OCR processing.\n\nThe file_content must be a base64-encoded file.\nThe cleanUp flag indicates if whitespace normalization and character cleanup\nshould be applied to the extracted text.",
             "in": "body",
             "required": true,
             "schema": {
@@ -50,6 +52,7 @@
     },
     "/v1/thumbnail": {
       "post": {
+        "summary": "Generates a thumbnail image from a given file.\nAccepts a ThumbnailRequest and returns a ThumbnailResponse.",
         "operationId": "ThumbnailService_GenerateThumbnail",
         "responses": {
           "200": {
@@ -68,6 +71,7 @@
         "parameters": [
           {
             "name": "body",
+            "description": "Request message for thumbnail generation.\n\nThe file_content must be a base64-encoded file (image, video, or PDF).\nOptional max_width and max_height can be provided to resize the thumbnail\n(values of 0 mean no resizing constraints).",
             "in": "body",
             "required": true,
             "schema": {
@@ -119,8 +123,7 @@
         "PDF"
       ],
       "default": "FILE_TYPE_UNSPECIFIED",
-      "description": "- FILE_TYPE_UNSPECIFIED: Default value for unspecified file type\n - IMAGE: Image file\n - VIDEO: Video file\n - PDF: PDF file",
-      "title": "Enum for the file type"
+      "description": "Enum representing the supported file types for processing.\n\n - FILE_TYPE_UNSPECIFIED: Default value when file type is not specified.\n - IMAGE: Represents an image file type.\n - VIDEO: Represents a video file type.\n - PDF: Represents a PDF file type."
     },
     "thumbnail_serviceOCRFileRequest": {
       "type": "object",
@@ -128,37 +131,37 @@
         "fileContent": {
           "type": "string",
           "format": "byte",
-          "title": "file"
+          "description": "Base64-encoded bytes of the file to OCR."
         },
         "fileType": {
           "$ref": "#/definitions/thumbnail_serviceFileType",
-          "title": "file type for future adding of maybe other stuff?"
+          "description": "Type of the file for future extensibility."
         },
         "cleanUp": {
           "type": "boolean",
-          "title": "if whitespace should be normalized and cleaned from \"useless chars\""
+          "description": "Whether to normalize whitespace and remove unnecessary characters."
         }
       },
-      "title": "create a ocred version of a document"
+      "description": "Request message for OCR processing.\n\nThe file_content must be a base64-encoded file.\nThe cleanUp flag indicates if whitespace normalization and character cleanup\nshould be applied to the extracted text."
     },
     "thumbnail_serviceOCRFileResponse": {
       "type": "object",
       "properties": {
         "message": {
           "type": "string",
-          "title": "Status Message"
+          "description": "Status message about the OCR operation."
         },
         "ocrContent": {
           "type": "string",
           "format": "byte",
-          "title": "data of the ocred file"
+          "description": "Base64-encoded bytes of the OCR processed file."
         },
         "textContent": {
           "type": "string",
-          "title": "text of the file"
+          "description": "Extracted text content from the file."
         }
       },
-      "title": "Response message of ocred document"
+      "description": "Response message for OCR processing.\n\nContains a status message, the OCRed file content as bytes, and\nthe extracted text content as a string."
     },
     "thumbnail_serviceThumbnailRequest": {
       "type": "object",
@@ -166,39 +169,39 @@
         "fileContent": {
           "type": "string",
           "format": "byte",
-          "title": "File content as bytes"
+          "description": "Base64-encoded bytes of the file to process."
         },
         "fileType": {
           "$ref": "#/definitions/thumbnail_serviceFileType",
-          "title": "File type (image, video, pdf)"
+          "description": "Specifies the type of the file."
         },
         "maxWidth": {
           "type": "integer",
           "format": "int32",
-          "title": "Optional max width for resizing (0 means no limit)"
+          "description": "Maximum width of the generated thumbnail; 0 means no limit."
         },
         "maxHeight": {
           "type": "integer",
           "format": "int32",
-          "title": "Optional max height for resizing (0 means no limit)"
+          "description": "Maximum height of the generated thumbnail; 0 means no limit."
         }
       },
-      "title": "Request message for generating thumbnails"
+      "description": "Request message for thumbnail generation.\n\nThe file_content must be a base64-encoded file (image, video, or PDF).\nOptional max_width and max_height can be provided to resize the thumbnail\n(values of 0 mean no resizing constraints)."
     },
     "thumbnail_serviceThumbnailResponse": {
       "type": "object",
       "properties": {
         "message": {
           "type": "string",
-          "title": "Message indicating success or failure"
+          "description": "Status or informational message about the thumbnail generation."
         },
         "thumbnailContent": {
           "type": "string",
           "format": "byte",
-          "title": "Thumbnail content as bytes"
+          "description": "Base64-encoded bytes of the generated thumbnail image."
         }
       },
-      "title": "Response message for the thumbnail generation"
+      "description": "Response message for thumbnail generation.\n\nContains a status message and the generated thumbnail as base64-encoded bytes."
     }
   }
 }

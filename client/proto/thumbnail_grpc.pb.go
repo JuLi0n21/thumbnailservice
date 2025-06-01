@@ -27,9 +27,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
-// Service definition
+// Service providing thumbnail generation and OCR functionalities.
 type ThumbnailServiceClient interface {
+	// Generates a thumbnail image from a given file.
+	// Accepts a ThumbnailRequest and returns a ThumbnailResponse.
 	GenerateThumbnail(ctx context.Context, in *ThumbnailRequest, opts ...grpc.CallOption) (*ThumbnailResponse, error)
+	// Performs OCR (Optical Character Recognition) on a provided file.
+	// Accepts an OCRFileRequest and returns an OCRFileResponse.
 	OcrFile(ctx context.Context, in *OCRFileRequest, opts ...grpc.CallOption) (*OCRFileResponse, error)
 }
 
@@ -65,9 +69,13 @@ func (c *thumbnailServiceClient) OcrFile(ctx context.Context, in *OCRFileRequest
 // All implementations must embed UnimplementedThumbnailServiceServer
 // for forward compatibility.
 //
-// Service definition
+// Service providing thumbnail generation and OCR functionalities.
 type ThumbnailServiceServer interface {
+	// Generates a thumbnail image from a given file.
+	// Accepts a ThumbnailRequest and returns a ThumbnailResponse.
 	GenerateThumbnail(context.Context, *ThumbnailRequest) (*ThumbnailResponse, error)
+	// Performs OCR (Optical Character Recognition) on a provided file.
+	// Accepts an OCRFileRequest and returns an OCRFileResponse.
 	OcrFile(context.Context, *OCRFileRequest) (*OCRFileResponse, error)
 	mustEmbedUnimplementedThumbnailServiceServer()
 }
