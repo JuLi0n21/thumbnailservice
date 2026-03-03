@@ -2,7 +2,7 @@ name: Build and Push ocr-service
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
 
 jobs:
   build:
