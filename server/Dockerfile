@@ -1,20 +1,26 @@
-FROM golang:1.24.2
+FROM golang:1.26.0 AS builder
 
-WORKDIR /app
+WORKDIR /build
+COPY go.mod go.sum ./
 
-RUN apt-get update && apt-get install -y \
-    imagemagick \
-    ffmpeg \
-    poppler-utils \
-    ocrmypdf \
-    qpdf \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN go mod download
 COPY . .
 
+RUN go build -o /app/thumbnail-service
+
+FROM debian:bookworm-slim
+WORKDIR /app
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends imagemagick
+RUN apt-get install -y --no-install-recommends ffmpeg
+RUN apt-get install -y --no-install-recommends poppler-utils
+RUN apt-get install -y --no-install-recommends qpdf
+RUN apt-get install -y --no-install-recommends ocrmypdf 
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/thumbnail-service .
+
 EXPOSE 50051
-
-RUN go mod tidy && go build -o thumbnail-service
-
 CMD ["./thumbnail-service"]
